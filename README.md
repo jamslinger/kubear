@@ -8,9 +8,6 @@ you'll have a fully functional cluster with the following components:
 - CNI: [Cilium](https://cilium.io/) 
 - [Sealed-Secrets](https://github.com/bitnami-labs/sealed-secrets)
 
-Tested With:
-- Ubuntu Server 20.04
-
 ## Preliminaries
 The nodes must be initially accessible via the ansible ssh configuration
 in the inventory group vars. If you add a new user via the users role you  
@@ -38,5 +35,9 @@ already running, and you want to join a new node.
 
 If you want to reset and recreate the cluster from scratch set `reset_cluster: true`.
 
-## Troubleshooting
-- If you run into issues with coredns after running the playbook, try restarting the cilium pods.
+## Tested Hardware
+Raspberry Pi 4 Model B - 8GB
+
+**OS:** Ubuntu Server 20.04
+
+**Arch:** ARM64
