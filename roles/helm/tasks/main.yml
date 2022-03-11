@@ -1,0 +1,21 @@
+---
+- name: Ensure dependencies are installed.
+  apt:
+    name:
+      - apt-transport-https
+    state: present
+
+- name: Add Helm apt key.
+  apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+    state: present
+
+- name: Add Helm repo.
+  apt_repository:
+    filename: helm-stable-debian
+    repo: deb https://baltocdn.com/helm/stable/debian/ all main
+
+- name: Installing Helm.
+  package:
+    name: helm
+    state: present

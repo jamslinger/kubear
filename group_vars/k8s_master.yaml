@@ -1,0 +1,43 @@
+---
+# Firewall
+firewalld_ports:
+  # ssh
+  - zone: public
+    port_numbers:
+      - "{{ security_ssh_port }}"
+    protocol: tcp
+    state: enabled
+
+  # k8s
+  - zone: public
+    port_numbers: [ 2379,2380,6443,10250,10257,10259 ]
+    protocol: tcp
+    state: enabled
+  - zone: public
+    port_numbers: [ 30000-32767 ]
+    protocol: tcp
+    state: enabled
+
+  # Metallb memberlist
+  - zone: public
+    port_numbers: [ 7946 ]
+    protocol: tcp
+    state: enabled
+  - zone: public
+    port_numbers: [ 7946 ]
+    protocol: udp
+    state: enabled
+
+  # Cilium
+  - zone: public
+    port_numbers: [ 4240,4244,4245,6061,6062,6942,9090,9876,9890,9891,9892,9893 ]
+    protocol: tcp
+    state: enabled
+  - zone: public
+    port_numbers: [ 8472 ]
+    protocol: udp
+    state: enabled
+  - zone: public
+    port_numbers: [ 51871 ]
+    protocol: udp
+    state: enabled

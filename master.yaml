@@ -1,0 +1,81 @@
+---
+- name: Checking if cluster is running.
+  command: kubectl cluster-info --kubeconfig=/etc/kubernetes/admin.conf
+  register: cluster_info
+  changed_when: false
+  failed_when: false
+- name: Setting cluster info variable.
+  set_fact:
+    cluster_up: "{{ 'is running' in cluster_info.stdout }}"
+
+- block:
+    - name: Build kubeadm init flags.
+      set_fact:
+        kubeadm_init_flags: "--skip-token-print --apiserver-advertise-address={{ apiserver_advertise_address }} --cri-socket={{ cri_socket }} --pod-network-cidr={{ pod_network_cidr }} --service-cidr={{ service_cidr }}"
+    - set_fact:
+        kubeadm_init_flags: "{{ kubeadm_init_flags }} --skip-phases=addon/kube-proxy"
+      when: replace_kube_proxy
+    - name: Initializing k8s cluster.
+      command: kubeadm init {{ kubeadm_init_flags }}
+      register: cluster_init
+    - name: Creating k8s folder.
+      file:
+        path: "/home/{{ k8s_user }}/.kube"
+        owner: "{{ k8s_user }}"
+        group: "{{ k8s_user }}"
+        state: directory
+    - name: Copying k8s config.
+      copy:
+        src: /etc/kubernetes/admin.conf
+        remote_src: true
+        dest: "/home/{{ k8s_user }}/.kube/config"
+        owner: "{{ k8s_user }}"
+        group: "{{ k8s_user }}"
+        mode: 0600
+  rescue:
+    - name: Resetting k8s cluster.
+      command: kubeadm reset -f
+    - fail:
+        msg: Failed to init k8s cluster. Cluster has been reset.
+  when: not cluster_up
+
+- name: Creating helm folder.
+  file:
+    path: "/home/{{ k8s_user }}/helm"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    state: directory
+
+- name: Providing Cilium values.
+  become_user: "{{ k8s_user }}"
+  template:
+    src: templates/cilium-values.yaml.j2
+    dest: "/home/{{ k8s_user }}/helm/cilium-values.yaml"
+
+- name: Deploying Cilium.
+  become_user: "{{ k8s_user }}"
+  kubernetes.core.helm:
+    release_name: cilium
+    chart_ref: cilium
+    chart_repo_url: https://helm.cilium.io
+    chart_version: "{{ cilium_chart_version }}"
+    release_namespace: kube-system
+    values_files:
+      - "/home/{{k8s_user}}/helm/cilium-values.yaml"
+
+- name: Providing Sealed-Secret values.
+  become_user: "{{ k8s_user }}"
+  template:
+    src: templates/sealed-secrets-values.yaml.j2
+    dest: "/home/{{ k8s_user }}/helm/sealed-secrets-values.yaml"
+
+- name: Deploying Sealed Secrets.
+  become_user: "{{ k8s_user }}"
+  kubernetes.core.helm:
+    release_name: sealed-secrets-controller
+    chart_ref: sealed-secrets
+    chart_repo_url: https://bitnami-labs.github.io/sealed-secrets
+    chart_version: "{{ sealed_secrets_chart_version }}"
+    release_namespace: kube-system
+    values_files:
+      - "/home/{{k8s_user}}/helm/sealed-secrets-values.yaml"

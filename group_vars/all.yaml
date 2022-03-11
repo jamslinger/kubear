@@ -1,0 +1,51 @@
+---
+# k8s
+k8s_user: ansible
+reset_cluster: false  # Resets and re-initializes cluster, be absolutely sure if you do this!
+join_only: false # skip k8s initialization, e.g. when only joining a new node
+replace_kube_proxy: true  # disable kube proxy, e.g. to rely on Cilium's eBPF implementation.
+kube_proxy_replacement: strict
+apiserver_advertise_address: 192.168.178.101
+pod_network_cidr: 10.100.0.0/16
+service_cidr: 10.200.0.0/16
+cri_socket: /run/containerd/containerd.sock
+
+# Cilium
+cilium_install: true
+cilium_version: v1.10.4
+cilium_chart_version: v1.10.4
+cilium_hubble: false
+cilium_hubble_ui: false
+cilium_hubble_relay: false # requires cilium_hubble=true
+
+# Sealed-Secrets
+sealed_secrets_version: v0.17.3
+sealed_secrets_chart_version: 2.1.4
+
+proc_arch:
+  name: aarch64 # x86_64
+  name_alt: arm64 # amd64
+
+# Common
+common_hostname: "{{ name }}"
+
+# Users config
+users:
+  - username: ansible
+    group: ansible
+    authorized_keys:
+      - "{{ lookup('file', '~/.ssh/id_ansible.pub') }}"
+
+# Firewall config
+firewalld_disable_firewalls:
+  - ufw
+firewalld_services:
+  - zone: public
+    service_names:
+      - ssh
+    state: disabled  # reconfigured with custom port, see security settings below
+
+# Security config
+security_ssh_port: 2848
+security_sudoers_passwordless:
+  - ansible

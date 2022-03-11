@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: true
+  any_errors_fatal: true
+
+  tasks:
+    - block:
+        - name: Deleting cluster config.
+          command: kubectl config delete-cluster kubernetes
+          become_user: "{{ k8s_user }}"
+          failed_when: false
+        - name: Resetting k8s cluster.
+          command: kubeadm reset -f
+        - meta: end_play
+      when: reset_cluster
+
+  roles:
+    - jamslinger.common
+    - jamslinger.users
+    - jamslinger.firewalld
+    - jamslinger.security
+    - jamslinger.containerd
+    - helm
+    - kubeadm
+
+- hosts: k8s_master
+  become: true
+  tasks:
+    - include_tasks: master.yaml
+      when: not join_only
+
+- hosts: k8s_cp
+  become: true
+  tasks:
+    - include_tasks: cp.yaml
+
+- hosts: k8s_worker
+  become: true
+  tasks:
+    - include_tasks: worker.yaml
+

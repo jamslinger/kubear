@@ -1,0 +1,17 @@
+---
+- name: Checking if cp has already joined.
+  command: kubectl cluster-info --kubeconfig=/etc/kubernetes/kubelet.conf
+  register: cp_info
+  changed_when: false
+  failed_when: false
+- name: Setting cluster info variable.
+  set_fact:
+    cp_joined: "{{ 'is running' in cp_info.stdout }}"
+- name: Retieve k8s join command.
+  command: kubeadm token create --print-join-command
+  delegate_to: "{{ apiserver_advertise_address }}"
+  register: join
+  when: not cp_joined
+- name: Joining cp nodes.
+  command: "{{ join.stdout }} --control-plane"
+  when: not cp_joined

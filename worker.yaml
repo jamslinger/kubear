@@ -1,0 +1,17 @@
+---
+- name: Checking if worker has already joined.
+  command: kubectl cluster-info --kubeconfig=/etc/kubernetes/kubelet.conf
+  register: worker_info
+  changed_when: false
+  failed_when: false
+- name: Setting cluster info variable.
+  set_fact:
+    worker_joined: "{{ 'is running' in worker_info.stdout }}"
+- name: Retieve k8s join command.
+  command: kubeadm token create --print-join-command
+  delegate_to: "{{ apiserver_advertise_address }}"
+  register: join
+  when: not worker_joined
+- name: Joining Worker nodes.
+  command: "{{ join.stdout }}"
+  when: not worker_joined

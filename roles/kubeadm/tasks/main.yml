@@ -1,0 +1,38 @@
+---
+- name: Ensure dependencies are installed.
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+    state: present
+
+- name: Adding k8s apt-key.
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Adding k8s apt repository.
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: 'kubernetes'
+
+# on r8pi not enabled by default
+- name: Enabling cgroups.
+  template:
+    src: cmdline.txt.j2
+    dest: /boot/firmware/cmdline.txt
+  notify:
+    - reboot
+- name: Flushing handlers.
+  meta: flush_handlers
+
+- name: Installing k8s.
+  package:
+    name: kubeadm
+    state: present
+- name: Starting k8s.
+  service:
+    name: kubelet
+    state: started
+    enabled: true

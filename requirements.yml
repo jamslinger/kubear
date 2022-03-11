@@ -1,0 +1,9 @@
+---
+collections:
+  - name: kubernetes.core
+roles:
+  - name: jamslinger.common
+  - name: jamslinger.users
+  - name: jamslinger.firewalld
+  - name: jamslinger.security
+  - name: jamslinger.containerd
