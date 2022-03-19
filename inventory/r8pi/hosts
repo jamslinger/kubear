@@ -4,12 +4,12 @@
 # cluster, if multiple cp nodes should join the cluster, they
 # should be added to the k8s_cp group.
 [k8s_master]
-192.168.178.101 name=k8s-master01 # TODO schedule_pods=true
+192.168.178.101 name=cp1 # TODO schedule_pods=true
 
 [k8s_cp]
+192.168.178.102 name=cp2
 
 [k8s_worker]
-192.168.178.102 name=k8s-worker01
 
 [all:children]
 k8s_master

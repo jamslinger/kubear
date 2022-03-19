@@ -11,10 +11,10 @@
 - block:
     - name: Build kubeadm init flags.
       set_fact:
-        kubeadm_init_flags: "--skip-token-print --apiserver-advertise-address={{ apiserver_advertise_address }} --cri-socket={{ cri_socket }} --pod-network-cidr={{ pod_network_cidr }} --service-cidr={{ service_cidr }}"
+        kubeadm_init_flags: "--skip-token-print --control-plane-endpoint={{ k8s_control_plane_endpoint }} --cri-socket={{ k8s_cri_socket }} --pod-network-cidr={{ k8s_pod_network_cidr }} --service-cidr={{ k8s_service_cidr }}"
     - set_fact:
         kubeadm_init_flags: "{{ kubeadm_init_flags }} --skip-phases=addon/kube-proxy"
-      when: replace_kube_proxy
+      when: k8s_replace_kube_proxy
     - name: Initializing k8s cluster.
       command: kubeadm init {{ kubeadm_init_flags }}
       register: cluster_init
@@ -51,6 +51,7 @@
   template:
     src: templates/cilium-values.yaml.j2
     dest: "/home/{{ k8s_user }}/helm/cilium-values.yaml"
+  when: cilium_install
 
 - name: Deploying Cilium.
   become_user: "{{ k8s_user }}"
@@ -59,15 +60,18 @@
     chart_ref: cilium
     chart_repo_url: https://helm.cilium.io
     chart_version: "{{ cilium_chart_version }}"
-    release_namespace: kube-system
+    create_namespace: true
+    release_namespace: cilium
     values_files:
       - "/home/{{k8s_user}}/helm/cilium-values.yaml"
+  when: cilium_install
 
 - name: Providing Sealed-Secret values.
   become_user: "{{ k8s_user }}"
   template:
     src: templates/sealed-secrets-values.yaml.j2
     dest: "/home/{{ k8s_user }}/helm/sealed-secrets-values.yaml"
+  when: sealed_secrets_install
 
 - name: Deploying Sealed Secrets.
   become_user: "{{ k8s_user }}"
@@ -79,3 +83,4 @@
     release_namespace: kube-system
     values_files:
       - "/home/{{k8s_user}}/helm/sealed-secrets-values.yaml"
+  when: sealed_secrets_install

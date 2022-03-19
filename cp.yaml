@@ -4,14 +4,23 @@
   register: cp_info
   changed_when: false
   failed_when: false
+
 - name: Setting cluster info variable.
   set_fact:
     cp_joined: "{{ 'is running' in cp_info.stdout }}"
+
 - name: Retieve k8s join command.
   command: kubeadm token create --print-join-command
-  delegate_to: "{{ apiserver_advertise_address }}"
+  delegate_to: "{{ k8s_master_control_plane_ip }}"
   register: join
   when: not cp_joined
+
+- name: Upload certificates.
+  command: kubeadm init phase upload-certs --upload-certs
+  delegate_to: "{{ k8s_master_control_plane_ip }}"
+  register: cert_key
+  when: not cp_joined
+
 - name: Joining cp nodes.
-  command: "{{ join.stdout }} --control-plane"
+  command: "{{ join.stdout }} --control-plane --certificate-key {{ cert_key.stdout_lines[2] }}"
   when: not cp_joined

@@ -1,14 +1,15 @@
 ---
 # k8s
 k8s_user: ansible
-reset_cluster: false  # Resets and re-initializes cluster, be absolutely sure if you do this!
-join_only: false # skip k8s initialization, e.g. when only joining a new node
-replace_kube_proxy: true  # disable kube proxy, e.g. to rely on Cilium's eBPF implementation.
-kube_proxy_replacement: strict
-apiserver_advertise_address: 192.168.178.101
-pod_network_cidr: 10.100.0.0/16
-service_cidr: 10.200.0.0/16
-cri_socket: /run/containerd/containerd.sock
+k8s_reset_cluster: false                      # Resets and re-initializes cluster, be absolutely sure if you do this!
+k8s_join_only: false                          # skip k8s initialization, e.g. when only joining a new node
+k8s_replace_kube_proxy: true                  # disable kube proxy, e.g. to rely on Cilium's eBPF implementation.
+k8s_kube_proxy_replacement: strict
+k8s_control_plane_endpoint: control-plane
+k8s_master_control_plane_ip: 192.168.178.101
+k8s_pod_network_cidr: 10.100.0.0/16
+k8s_service_cidr: 10.200.0.0/16
+k8s_cri_socket: /run/containerd/containerd.sock
 
 # Cilium
 cilium_install: true
@@ -19,6 +20,7 @@ cilium_hubble_ui: false
 cilium_hubble_relay: false # requires cilium_hubble=true
 
 # Sealed-Secrets
+sealed_secrets_install: true
 sealed_secrets_version: v0.17.3
 sealed_secrets_chart_version: 2.1.4
 
@@ -28,6 +30,14 @@ proc_arch:
 
 # Common
 common_hostname: "{{ name }}"
+common_update_hosts_file: true
+
+# Add entry for master node to /etc/hosts. Once the cluster
+# is fully initialized, k8s_control_plane_endpoint should
+# point to a LB in order to achieve HA.
+common_host_entries:
+  - host: "{{ k8s_control_plane_endpoint }}"
+    ip: "{{ k8s_master_control_plane_ip }}"
 
 # Users config
 users:

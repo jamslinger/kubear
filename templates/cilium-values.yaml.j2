@@ -513,7 +513,7 @@ hostPort:
 # -- Configure ClusterIP service handling in the host namespace (the node).
 hostServices:
   # -- Enable host reachable services.
-  enabled: {{ replace_kube_proxy }}
+  enabled: {{ k8s_replace_kube_proxy }}
 
   # -- Supported list of protocols to apply ClusterIP translation to.
   protocols: tcp,udp
@@ -909,7 +909,7 @@ readinessProbe:
 # -- Configure the kube-proxy replacement in Cilium BPF datapath
 # Valid options are "disabled", "probe", "partial", "strict".
 # ref: https://docs.cilium.io/en/stable/gettingstarted/kubeproxy-free/
-kubeProxyReplacement: {{ kube_proxy_replacement }}
+kubeProxyReplacement: {{ k8s_kube_proxy_replacement }}
 
 # -- healthz server bind address for the kube-proxy replacement.
 # To enable set the value to '0.0.0.0:10256' for all ipv4

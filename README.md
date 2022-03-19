@@ -30,10 +30,10 @@ hosts file. There are three groups available:
 - `[k8s_worker]`: Nodes that should join the cluster as worker nodes
 
 If you want to initialize a new cluster, make sure
-to set `join_only: false`. Set `join_only: true` if a cluster is 
+to set `k8s_join_only: false`. Set `k8s_join_only: true` if a cluster is 
 already running, and you want to join a new node.
 
-If you want to reset and recreate the cluster from scratch set `reset_cluster: true`.
+If you want to reset and recreate the cluster from scratch set `k8s_reset_cluster: true`.
 
 ## Tested Hardware
 Raspberry Pi 4 Model B - 8GB

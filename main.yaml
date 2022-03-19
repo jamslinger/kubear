@@ -12,7 +12,7 @@
         - name: Resetting k8s cluster.
           command: kubeadm reset -f
         - meta: end_play
-      when: reset_cluster
+      when: k8s_reset_cluster
 
   roles:
     - jamslinger.common
@@ -27,7 +27,7 @@
   become: true
   tasks:
     - include_tasks: master.yaml
-      when: not join_only
+      when: not k8s_join_only
 
 - hosts: k8s_cp
   become: true
