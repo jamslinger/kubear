@@ -4,26 +4,26 @@
   register: cluster_info
   changed_when: false
   failed_when: false
+
 - name: Setting cluster info variable.
   set_fact:
     cluster_up: "{{ 'is running' in cluster_info.stdout }}"
 
 - block:
-    - name: Build kubeadm init flags.
-      set_fact:
-        kubeadm_init_flags: "--skip-token-print --control-plane-endpoint={{ k8s_control_plane_endpoint }} --cri-socket={{ k8s_cri_socket }} --pod-network-cidr={{ k8s_pod_network_cidr }} --service-cidr={{ k8s_service_cidr }}"
-    - set_fact:
-        kubeadm_init_flags: "{{ kubeadm_init_flags }} --skip-phases=addon/kube-proxy"
-      when: k8s_replace_kube_proxy
-    - name: Initializing k8s cluster.
-      command: kubeadm init {{ kubeadm_init_flags }}
-      register: cluster_init
     - name: Creating k8s folder.
       file:
         path: "/home/{{ k8s_user }}/.kube"
         owner: "{{ k8s_user }}"
         group: "{{ k8s_user }}"
         state: directory
+    - name: Copying k8s init config.
+      become_user: "{{ k8s_user }}"
+      template:
+        src: templates/cluster-init-config.yaml.j2
+        dest: "/home/{{ k8s_user }}/.kube/init-config.yaml"
+    - name: Initializing k8s cluster.
+      command: "kubeadm init --config /home/{{ k8s_user }}/.kube/init-config.yaml"
+      register: cluster_init
     - name: Copying k8s config.
       copy:
         src: /etc/kubernetes/admin.conf
@@ -40,10 +40,9 @@
   when: not cluster_up
 
 - name: Creating helm folder.
+  become_user: "{{ k8s_user }}"
   file:
     path: "/home/{{ k8s_user }}/helm"
-    owner: "{{ k8s_user }}"
-    group: "{{ k8s_user }}"
     state: directory
 
 - name: Providing Cilium values.

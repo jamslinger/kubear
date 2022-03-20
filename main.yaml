@@ -32,10 +32,10 @@
 - hosts: k8s_cp
   become: true
   tasks:
-    - include_tasks: cp.yaml
+    - include_tasks: cp_worker.yaml
 
 - hosts: k8s_worker
   become: true
   tasks:
-    - include_tasks: worker.yaml
+    - include_tasks: cp_worker.yaml
 

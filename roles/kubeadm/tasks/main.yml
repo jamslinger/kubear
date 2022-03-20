@@ -28,8 +28,8 @@
   meta: flush_handlers
 
 - name: Installing k8s.
-  package:
-    name: kubeadm
+  apt:
+    name: "kubeadm={{ k8s_version }}-00"
     state: present
 - name: Starting k8s.
   service:

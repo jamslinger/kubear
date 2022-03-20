@@ -1,0 +1,33 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+nodeRegistration:
+  name: "{{ name }}"
+  criSocket: "{{ k8s_cri_socket }}"
+
+taints: "{{ k8s_node_taints }}"
+
+{% if k8s_replace_kube_proxy  %}
+skipPhases:
+  - addon/kube-proxy
+{% endif %}
+
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+clusterName: "{{ k8s_cluster_name }}"
+networking:
+  serviceSubnet: "{{ k8s_service_cidr }}"
+  podSubnet: "{{ k8s_pod_network_cidr }}"
+kubernetesVersion: "v{{ k8s_version }}"
+controlPlaneEndpoint: "{{ k8s_control_plane_host }}:{{ k8s_control_plane_port }}"
+
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+# kubelet specific options here
+
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+# kube-proxy specific options here

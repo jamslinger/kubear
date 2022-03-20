@@ -1,0 +1,64 @@
+---
+- name: Checking if cp has already joined.
+  command: kubectl cluster-info --kubeconfig=/etc/kubernetes/kubelet.conf
+  register: cluster_info
+  changed_when: false
+  failed_when: false
+
+- name: Setting cluster info variable.
+  set_fact:
+    joined: "{{ 'is running' in cluster_info.stdout }}"
+
+- name: Retieving k8s join command.
+  command: kubeadm token create --print-join-command
+  delegate_to: "{{ k8s_master_control_plane_ip }}"
+  register: join_command
+  when: not joined
+
+- name: Setting join token.
+  set_fact:
+    cp_join_token: "{{ join_command.stdout.split(' ')[4] }}"
+  when: not joined
+
+- name: Setting join token ca cert hash.
+  set_fact:
+    cp_join_token_ca_cert_hash: "{{ join_command.stdout.split(' ')[6] }}"
+  when: not joined
+
+- name: Uploading certificates.
+  command: kubeadm init phase upload-certs --upload-certs
+  delegate_to: "{{ k8s_master_control_plane_ip }}"
+  register: cert_key
+  when:
+    - not joined
+    - role == "cp"
+
+- name: Setting certificate key.
+  set_fact:
+    cp_join_certificate_key: "{{ cert_key.stdout_lines[2] }}"
+  when:
+    - not joined
+    - role == "cp"
+
+- name: Creating k8s folder.
+  become_user: "{{ k8s_user }}"
+  file:
+    path: "/home/{{ k8s_user }}/.kube"
+    state: directory
+  when: not joined
+
+- name: Copying k8s join config.
+  become_user: "{{ k8s_user }}"
+  template:
+    src: templates/cluster-join-config.yaml.j2
+    dest: "/home/{{ k8s_user }}/.kube/join-config.yaml"
+  when: not joined
+
+- name: Joining node.
+  command: "kubeadm join --config /home/{{ k8s_user }}/.kube/join-config.yaml"
+  when: not joined
+
+- name: Removing k8s join config.
+  file:
+    path: "/home/{{ k8s_user }}/.kube/join-config.yaml"
+    state: absent

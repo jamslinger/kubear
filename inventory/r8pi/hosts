@@ -1,15 +1,16 @@
-# Servers
+# Server Inventory
 #
-# There must only be a single master node to initialize the
-# cluster, if multiple cp nodes should join the cluster, they
-# should be added to the k8s_cp group.
+# There must only be a single master node to initialize the cluster.
+# Additional cp nodes should be added to the k8s_cp group.
+
 [k8s_master]
-192.168.178.101 name=cp1 # TODO schedule_pods=true
+192.168.178.101 name=cp1
 
 [k8s_cp]
-192.168.178.102 name=cp2
+
 
 [k8s_worker]
+192.168.178.102 name=w01
 
 [all:children]
 k8s_master
