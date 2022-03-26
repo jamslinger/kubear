@@ -25,7 +25,8 @@ controlPlaneEndpoint: "{{ k8s_control_plane_host }}:{{ k8s_control_plane_port }}
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
-# kubelet specific options here
+## enable enhances security but will require to manually approve certs or use some operator for automatic approvals
+# serverTLSBootstrap: true
 
 ---
 apiVersion: kubeproxy.config.k8s.io/v1alpha1

@@ -42,3 +42,9 @@ firewalld_ports:
     port_numbers: [ 51871 ]
     protocol: udp
     state: enabled
+
+  # Node-Exporter
+  - zone: public
+    port_numbers: [ 9100 ]
+    protocol: tcp
+    state: enabled
